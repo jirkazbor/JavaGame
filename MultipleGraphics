@@ -1,0 +1,104 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package multiplegraphics;
+
+import java.awt.Canvas;
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.event.KeyEvent;
+import java.awt.image.BufferStrategy;
+import java.util.ArrayList;
+
+/**
+ *
+ * @author jirkazbor
+ */
+public class MultipleGraphics extends Canvas implements Runnable {
+  private Thread thread;
+  private boolean isRunning;
+  private final ArrayList<NewEnemy> enemies;
+  protected Vektor vector;
+  Player pl;
+  Entity en;
+  NewEnemy newEn;
+  Enemy enemy;
+    /**
+     * @param args the command line arguments
+     */
+    public static void main(String[] args) {           
+       new MultipleField();
+    }
+   public MultipleGraphics(){
+       
+       pl=new Player();
+        en=new Entity();
+        newEn=new  NewEnemy();
+        enemy=new Enemy();
+        enemies=new ArrayList<>();
+        pl.start();
+        addKeyListener(new KeyInput(this));
+        setFocusable(true);
+        setFocusTraversalKeysEnabled(false);
+       /* for(int enemies=0;enemies<6;enemies++){
+            this.enemies.add(new NewEnemy());
+        }*/
+    }
+      
+    public void start(){
+        while(isRunning)
+            return;
+        isRunning=true;
+        thread=new Thread(this);
+        thread.start();
+    }
+
+    @Override
+    public void run() {
+        int fps=0;
+        long timer=System.currentTimeMillis();
+        while(isRunning==true){
+            fps++;
+            render();
+            if(System.currentTimeMillis()-timer>=1000){
+                timer+=1000;
+                System.out.println("FPS:"+fps);
+                fps=0;
+            }
+        }
+    }
+    public void keyPressed(KeyEvent e){
+        if(e.getKeyCode()== KeyEvent.VK_D){
+            pl.right();         
+         }else if(e.getKeyCode()== KeyEvent.VK_A){
+            pl.left();
+         }else if(e.getKeyCode()== KeyEvent.VK_S){
+            pl.up();
+         }else if(e.getKeyCode()== KeyEvent.VK_W){
+            pl.down();
+         }
+    }
+    public void keyReleased(KeyEvent e){
+        pl.released();
+    }
+    private void render() {
+        BufferStrategy bs=this.getBufferStrategy();
+        if(bs==null){
+            this.createBufferStrategy(3);
+            return;
+        }
+        Graphics g=bs.getDrawGraphics();
+        g.setColor(Color.BLACK);
+        g.fillRect(0,0,getWidth(),getHeight());
+        pl.paintComponent(g);
+        enemy.paintEnemySmall(g);
+       // newEn.move();
+        this.enemies.stream().forEach((e) -> {
+            e.paintEnemy(g);
+      });
+        g.dispose();
+        bs.show();
+    }   
+}
